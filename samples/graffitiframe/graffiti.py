@@ -75,7 +75,7 @@ class GraffitiConfig(Config):
 
     # We use a GPU with 12GB memory, which can fit two images.
     # Adjust down if you use a smaller GPU.
-    IMAGES_PER_GPU = 2
+    IMAGES_PER_GPU = 1
     GPU_COUNT = 1
     DETECTION_NMS_THRESHOLD = 0.3
     STEPS_PER_EPOCH = 100
@@ -188,7 +188,7 @@ class GraffitiDataset(utils.Dataset):
             super(self.__class__, self).image_reference(image_id)
 
 
-def train(model):
+def train(model, model_dir):
     """Train the model."""
     # Training dataset.
     dataset_train = GraffitiDataset()
@@ -199,6 +199,23 @@ def train(model):
     dataset_val = GraffitiDataset()
     dataset_val.load_graffiti(args.dataset, "val")
     dataset_val.prepare()
+
+    mAP_freq = 5
+
+    class ValConfig(GraffitiConfig):
+        GPU_COUNT = 1
+        IMAGES_PER_GPU = 1
+        DETECTION_MIN_CONFIDENCE = 0.0
+
+    #myconfig = ValConfig(nclasses=NUM_CLASSES)
+    model_inference = modellib.MaskRCNN(mode="inference",
+                                        config=ValConfig(NUM_CLASSES),
+                                        model_dir=model_dir)
+
+    mAP_callback = modellib.MeanAveragePrecisionCallback(model,
+                                                         model_inference,
+                                                         dataset_val,
+                                                         mAP_freq, verbose=1)
 
     # *** This training schedule is an example. Update to your needs ***
     # Since we're using a very small dataset, and starting from
@@ -214,7 +231,9 @@ def train(model):
                     imgaug.augmenters.Crop(px=(0, 50)), # crop images from each side by 0 to 16px (randomly chosen)
                     imgaug.augmenters.Fliplr(0.5), # horizontally flip 50% of the images
                     imgaug.augmenters.GaussianBlur(sigma=(0, 3.0)) # blur images with a sigma of 0 to 3.0
-                ]))
+                #]))
+                ]),
+                custom_callbacks=[mAP_callback],)
 
 
 def color_splash(image, mask):
@@ -488,6 +507,7 @@ if __name__ == '__main__':
         model = modellib.MaskRCNN(mode="inference", config=config,
                                   model_dir=args.logs)
 
+
     # Select weights file to load
     if args.weights.lower() == "coco":
         weights_path = COCO_WEIGHTS_PATH
@@ -518,7 +538,7 @@ if __name__ == '__main__':
 
     # Train or evaluate
     if args.command == "train":
-        train(model)
+        train(model, args.logs)
     elif args.command == "splash":
         detect_and_color_splash(model, image_path=args.image, imdir=args.imdir,
                                 video_path=args.video)
