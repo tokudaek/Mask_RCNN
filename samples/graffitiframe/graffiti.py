@@ -505,13 +505,15 @@ if __name__ == '__main__':
 
     # Load weights
     print("Loading weights ", weights_path)
-    if args.weights.lower() == "coco":
+    #if args.weights.lower() == "coco":
+    if 'coco' in args.weights.lower():
         # Exclude the last layers because they require a matching
         # number of classes
         model.load_weights(weights_path, by_name=True, exclude=[
             "mrcnn_class_logits", "mrcnn_bbox_fc",
             "mrcnn_bbox", "mrcnn_mask"])
     else:
+        print('If you want to change the number of classes, consider removing the last layers.')
         model.load_weights(weights_path, by_name=True)
 
     # Train or evaluate
