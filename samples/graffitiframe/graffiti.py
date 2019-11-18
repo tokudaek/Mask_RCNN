@@ -50,7 +50,7 @@ COCO_WEIGHTS_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
 
 DEFAULT_LOGS_DIR = os.path.join(ROOT_DIR, "logs")
 
-_CLASSES = [ "tag", "frame", "sign"]
+_CLASSES = [ "tag", "frame"]
 NUM_CLASSES = 1 + len(_CLASSES)  # Background
 ############################################################
 #  Configurations
@@ -374,6 +374,7 @@ def batchcsv(model, imdir, outdir, reverse=False, shuffle=False):
     print('Starting from file index:{}'.format(lastfileidx))
 
     for fileidx, filename in enumerate(imgfiles[lastfileidx:]):
+
         #filenameroot = filename.replace('.jpg', '')
         outcsv = os.path.join(outdir, filename + '.csv')
         if os.path.exists(outcsv): continue
@@ -421,9 +422,11 @@ def batch_img(model, imdir, outdir, reverse=False, shuffle=False):
         files = aux
 
     classes = ['bg', 'tag', 'frame', 'sign']
+    fig, ax = plt.subplots(1,1, figsize=(10, 10))
     for filename in files:
         if not filename.endswith('.jpg'):
             continue
+        plt.cla()
         outpath = os.path.join(outdir, filename.replace('.jpg', '.png'))
 
         if os.path.exists(outpath) or os.path.exists(os.path.join(outdir, filename)):
@@ -434,10 +437,10 @@ def batch_img(model, imdir, outdir, reverse=False, shuffle=False):
         img = imageio.imread(os.path.join(imdir, filename))
         r = model.detect([img], verbose=0)[0]
 
-        fig, ax = plt.subplots(1,1, figsize=(10, 10))
         visualize.display_instances(img, r['rois'], r['masks'], r['class_ids'], 
                                     classes, r['scores'], ax=ax,
-                                    title="Predictions")
+                                    title="Predictions", exclude=['frame', 'sign'],
+                                    scorethresh=.5)
         fig.savefig(outpath, bbox_inches='tight')
 
 ############################################################
@@ -494,8 +497,7 @@ if __name__ == '__main__':
             # Set batch size to 1 since we'll be running inference on
             # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
             GPU_COUNT = 1
-            IMAGES_PER_GPU = 16
-            #BATCH_SIZE = IMAGES_PER_GPU * GPU_COUNT
+            IMAGES_PER_GPU = 1
         config = InferenceConfig(nclasses=NUM_CLASSES)
     config.display()
 
