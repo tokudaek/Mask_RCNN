@@ -439,7 +439,8 @@ def batch_img(model, imdir, outdir, reverse=False, shuffle=False):
 
         visualize.display_instances(img, r['rois'], r['masks'], r['class_ids'], 
                                     classes, r['scores'], ax=ax,
-                                    title="Predictions", exclude=['frame', 'sign'],
+                                    # title="Predictions", exclude=['frame', 'sign'],
+                                    title="Predictions", exclude=[],
                                     scorethresh=.5)
         fig.savefig(outpath, bbox_inches='tight')
 
@@ -472,8 +473,8 @@ if __name__ == '__main__':
     parser.add_argument('--video', required=False,
                         metavar="path or URL to video",
                         help='Video to apply the color splash effect on')
-    parser.add_argument('--imdir', help='Images path')
-    parser.add_argument('--outdir', help='CSV output directory')
+    parser.add_argument('--imdir', default='images/graff/', help='Images path')
+    parser.add_argument('--outdir', default='/tmp', help='CSV output directory')
     parser.add_argument('--reverse', action='store_true', help='Reverse order to traverse files')
     parser.add_argument('--shuffle', action='store_true', help='Shuffled order')
     args = parser.parse_args()
