@@ -41,7 +41,7 @@ CLASS_NAMES = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
 
 ##########################################################
 def visualize_detection(image, f, r, outdir):
-    """Visualie detections"""
+    """Visualize detections"""
     info(inspect.stack()[0][3] + '()')
     W = 1280; H = 960
     fig, ax = plt.subplots(figsize=(W*.01, H*.01), dpi=100)
@@ -97,6 +97,7 @@ def main():
     class InferenceConfig(coco.CocoConfig):
         GPU_COUNT = 1
         IMAGES_PER_GPU = 1
+        DETECTION_MIN_CONFIDENCE = 0.0
 
     config = InferenceConfig()
     config.display()
